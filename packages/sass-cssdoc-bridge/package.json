@@ -1,0 +1,7 @@
+{
+  "name": "@hia-doc/sass-cssdoc-bridge",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Bridge between SassDoc and CSSDoc artifacts.",
+  "license": "MIT"
+}

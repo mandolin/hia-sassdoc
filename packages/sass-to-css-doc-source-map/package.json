@@ -1,0 +1,7 @@
+{
+  "name": "@hia-doc/sass-to-css-doc-source-map",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Sass to CSS documentation source-map linkage.",
+  "license": "MIT"
+}

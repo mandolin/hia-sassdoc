@@ -1,0 +1,22 @@
+{
+  "name": "@hia-doc/hia-sassdoc-workspace",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Workspace for HIA Sass documentation packages.",
+  "license": "MIT",
+  "scripts": {
+    "check:skeleton": "node scripts/check-skeleton.cjs",
+    "check:syntax": "node --check scripts/check-skeleton.cjs && node --check scripts/check-license-audit.cjs && node --check scripts/release-check.cjs",
+    "license:audit": "node scripts/check-license-audit.cjs",
+    "release:check": "node scripts/release-check.cjs",
+    "release:gate": "npm run check:syntax && npm run check:skeleton && npm run license:audit && npm run release:check && npm pack --dry-run --json",
+    "test": "npm run check:skeleton",
+    "test:all": "npm run release:gate"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=18"
+  }
+}

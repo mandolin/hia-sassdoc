@@ -1,0 +1,7 @@
+{
+  "name": "@hia-doc/sassdoc-spec",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Sass documentation annotation, tag registry and rule drafts.",
+  "license": "MIT"
+}

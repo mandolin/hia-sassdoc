@@ -1,0 +1,7 @@
+{
+  "name": "@hia-doc/sass-doc-adapter",
+  "version": "0.0.0",
+  "private": true,
+  "description": "SassDoc extraction artifact to HIA core document.",
+  "license": "MIT"
+}
