@@ -14,10 +14,23 @@ This repository is planned as an umbrella monorepo for Sass documentation specif
 
 ## Status
 
-This workspace is currently a bootstrap skeleton. Runtime parser dependencies and public package publishing remain intentionally disabled until the foundation ADRs are accepted.
+This workspace has a W-P9.3 Dart Sass fixture compiler for Sass-to-CSS documentation source-map linkage. Public package publishing remains intentionally disabled until package naming and release sequencing are finalized.
+
+## Fixtures
+
+The first fixture lives under `fixtures/doc-source-map/sass-css/` and demonstrates:
+
+- SCSS source with CSSDoc-compatible annotation.
+- Dart Sass generated CSS fixture.
+- CSSDoc extraction artifact.
+- `doc-source-map@0.1.0-draft` manifest.
+- HIA core document fixture.
+
+This fixture is generated with Dart Sass `1.101.0` under the repository-local mise toolchain. It validates the artifact contract, source-map path normalization and path/privacy rules.
 
 ## Development
 
 ```sh
-npm run release:gate
+mise exec -- npm run test
+mise exec -- npm run release:gate
 ```

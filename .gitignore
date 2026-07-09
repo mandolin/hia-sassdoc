@@ -1,5 +1,7 @@
 node_modules/
 dist/
+!fixtures/**/dist/
+!fixtures/**/dist/**
 coverage/
 *.tgz
 npm-debug.log*

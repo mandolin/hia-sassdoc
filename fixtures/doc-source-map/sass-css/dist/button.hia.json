@@ -1,0 +1,115 @@
+{
+  "schemaVersion": "0.2.0",
+  "id": "fixture.sass.button",
+  "title": "Sass Button Fixture",
+  "defaultLocale": "en",
+  "locales": [
+    "en"
+  ],
+  "nodes": [
+    {
+      "id": "node.css.button",
+      "kind": "module",
+      "title": "Button styles",
+      "symbolIds": [
+        "component:Button",
+        "token:color.button.foreground"
+      ],
+      "children": []
+    }
+  ],
+  "symbols": [
+    {
+      "id": "component:Button",
+      "kind": "css-component-style",
+      "name": "Button",
+      "summary": "Button component style generated from Sass.",
+      "source": {
+        "model": "hia-source",
+        "modelVersion": "0.2.0",
+        "mode": "link",
+        "definedIn": {
+          "kind": "defined-in",
+          "relativePath": "fixtures/doc-source-map/sass-css/src/button.scss",
+          "language": "scss",
+          "position": {
+            "line": 3,
+            "column": 1
+          },
+          "range": {
+            "start": {
+              "line": 3,
+              "column": 1
+            },
+            "end": {
+              "line": 3,
+              "column": 21
+            }
+          },
+          "link": {
+            "enabled": false,
+            "openMode": "same-tab"
+          }
+        },
+        "primaryBlock": null,
+        "references": [],
+        "fragments": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "id": "token:color.button.foreground",
+      "kind": "design-token",
+      "name": "color.button.foreground",
+      "summary": "Foreground color token for the Button component.",
+      "metadata": {
+        "cssCustomProperty": "--button-color",
+        "value": "#0f766e"
+      },
+      "source": {
+        "model": "hia-source",
+        "modelVersion": "0.2.0",
+        "mode": "link",
+        "definedIn": {
+          "kind": "defined-in",
+          "relativePath": "fixtures/doc-source-map/sass-css/src/button.scss",
+          "language": "scss",
+          "position": {
+            "line": 7,
+            "column": 1
+          },
+          "range": {
+            "start": {
+              "line": 7,
+              "column": 1
+            },
+            "end": {
+              "line": 7,
+              "column": 24
+            }
+          },
+          "link": {
+            "enabled": false,
+            "openMode": "same-tab"
+          }
+        },
+        "primaryBlock": null,
+        "references": [],
+        "fragments": [],
+        "diagnostics": []
+      }
+    }
+  ],
+  "diagnostics": [],
+  "metadata": {
+    "fixture": "sass-css-doc-source-map",
+    "docSourceMaps": [
+      {
+        "contract": "doc-source-map",
+        "contractVersion": "0.1.0-draft",
+        "path": "fixtures/doc-source-map/sass-css/dist/button.docmap.json",
+        "entryArtifact": "fixtures/doc-source-map/sass-css/dist/button.css"
+      }
+    ]
+  }
+}

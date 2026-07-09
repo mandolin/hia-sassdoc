@@ -1,0 +1,168 @@
+{
+  "contract": "doc-source-map",
+  "contractVersion": "0.1.0-draft",
+  "id": "docmap:sass-css:button",
+  "producer": {
+    "name": "@hia-doc/hia-sassdoc-workspace",
+    "version": "0.0.0",
+    "profile": "sass-css-dart-sass-fixture"
+  },
+  "artifacts": [
+    {
+      "id": "artifact:css:button",
+      "kind": "generated-css",
+      "path": "fixtures/doc-source-map/sass-css/dist/button.css",
+      "language": "css",
+      "role": "generated",
+      "contractRefs": [
+        {
+          "contract": "cssdoc-extraction",
+          "path": "fixtures/doc-source-map/sass-css/dist/button.cssdoc.json"
+        }
+      ]
+    },
+    {
+      "id": "artifact:hia:button",
+      "kind": "extraction-artifact",
+      "path": "fixtures/doc-source-map/sass-css/dist/button.hia.json",
+      "language": "json",
+      "role": "generated"
+    }
+  ],
+  "sources": [
+    {
+      "id": "source:scss:button",
+      "kind": "stylesheet-source",
+      "path": "fixtures/doc-source-map/sass-css/src/button.scss",
+      "language": "scss",
+      "role": "original",
+      "sourcesContentPolicy": "none"
+    }
+  ],
+  "sourceMaps": [
+    {
+      "id": "sourcemap:sass-css:button",
+      "kind": "ordinary-source-map",
+      "format": "source-map-v3",
+      "path": "fixtures/doc-source-map/sass-css/dist/button.css.map",
+      "mapsFrom": "artifact:css:button",
+      "mapsTo": [
+        "source:scss:button"
+      ],
+      "sourcesContentPolicy": "none",
+      "pointer": {
+        "status": "not-written",
+        "reservedExtensionField": "x_doc_source_map"
+      }
+    }
+  ],
+  "chains": [
+    {
+      "id": "chain:sass-css:button",
+      "stages": [
+        {
+          "from": "source:scss:button",
+          "to": "artifact:css:button",
+          "transform": "dart-sass",
+          "sourceMap": "sourcemap:sass-css:button",
+          "linkage": [
+            "entry:component:button",
+            "entry:token:button-color"
+          ]
+        },
+        {
+          "from": "artifact:css:button",
+          "to": "artifact:hia:button",
+          "transform": "cssdoc-to-hia-core",
+          "sourceMap": null,
+          "linkage": [
+            "entry:component:button"
+          ]
+        }
+      ]
+    }
+  ],
+  "entries": [
+    {
+      "id": "entry:component:button",
+      "kind": "symbol",
+      "symbolKind": "css-component-style",
+      "symbolId": "component:Button",
+      "annotation": {
+        "tag": "component",
+        "name": "Button"
+      },
+      "sourceRefs": [
+        {
+          "sourceId": "source:scss:button",
+          "range": {
+            "start": {
+              "line": 1,
+              "column": 1
+            },
+            "end": {
+              "line": 6,
+              "column": 4
+            }
+          },
+          "rangeSource": "fixture-parser",
+          "confidence": "high"
+        }
+      ],
+      "artifactRefs": [
+        {
+          "artifactId": "artifact:css:button",
+          "selector": ".button",
+          "rangeSource": "adapter",
+          "confidence": "medium"
+        }
+      ],
+      "diagnostics": []
+    },
+    {
+      "id": "entry:token:button-color",
+      "kind": "design-token-link",
+      "symbolKind": "design-token",
+      "symbolId": "token:color.button.foreground",
+      "sourceRefs": [
+        {
+          "sourceId": "source:scss:button",
+          "range": {
+            "start": {
+              "line": 7,
+              "column": 1
+            },
+            "end": {
+              "line": 7,
+              "column": 24
+            }
+          },
+          "rangeSource": "fixture-parser",
+          "confidence": "high"
+        }
+      ],
+      "artifactRefs": [
+        {
+          "artifactId": "artifact:css:button",
+          "selector": ".button",
+          "property": "--button-color",
+          "rangeSource": "adapter",
+          "confidence": "medium"
+        }
+      ],
+      "diagnostics": []
+    }
+  ],
+  "privacy": {
+    "sourcesContentPolicy": "none",
+    "allowAbsolutePaths": false,
+    "allowUncPaths": false,
+    "allowPathTraversal": false,
+    "releaseGate": {
+      "requireExplicitEmbedOptIn": true,
+      "failOnUnsafePath": true,
+      "failOnUnexpectedSourcesContent": true
+    }
+  },
+  "diagnostics": []
+}

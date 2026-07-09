@@ -9,16 +9,20 @@ const requiredPaths = [
   "RELEASE_CHECKLIST.md",
   "THIRD_PARTY_NOTICES.md",
   "LICENSE",
+  ".mise.toml",
   "package.json",
   "pnpm-workspace.yaml",
   "examples/basic/README.md",
   "fixtures/README.md",
+  "fixtures/doc-source-map/sass-css/src/button.scss",
   "test/README.md",
   "packages/sassdoc-spec/package.json",
   "packages/sass-doc-extractor/package.json",
   "packages/sass-doc-adapter/package.json",
   "packages/sass-to-css-doc-source-map/package.json",
-  "packages/sass-cssdoc-bridge/package.json"
+  "packages/sass-cssdoc-bridge/package.json",
+  "scripts/build-fixtures.cjs",
+  "scripts/check-fixtures.cjs"
 ];
 
 let failed = false;
