@@ -1,16 +1,16 @@
 {
   "schemaVersion": "0.2.0",
-  "id": "fixture.sass.button",
-  "title": "Sass Button Fixture",
+  "id": "sassdoc:fixtures/doc-source-map/sass-css/src/button.scss",
+  "title": "button.scss",
   "defaultLocale": "en",
   "locales": [
     "en"
   ],
   "nodes": [
     {
-      "id": "node.css.button",
+      "id": "node.sassdoc",
       "kind": "module",
-      "title": "Button styles",
+      "title": "SassDoc",
       "symbolIds": [
         "component:Button",
         "token:color.button.foreground"
@@ -23,7 +23,16 @@
       "id": "component:Button",
       "kind": "css-component-style",
       "name": "Button",
-      "summary": "Button component style generated from Sass.",
+      "summary": "Sass component style for Button.",
+      "metadata": {
+        "sassdoc": {
+          "kind": "sass-component-style",
+          "selector": ".button",
+          "customProperty": "--button-color",
+          "variable": null,
+          "value": null
+        }
+      },
       "source": {
         "model": "hia-source",
         "modelVersion": "0.2.0",
@@ -61,10 +70,15 @@
       "id": "token:color.button.foreground",
       "kind": "design-token",
       "name": "color.button.foreground",
-      "summary": "Foreground color token for the Button component.",
+      "summary": "Sass design token color.button.foreground.",
       "metadata": {
-        "cssCustomProperty": "--button-color",
-        "value": "#0f766e"
+        "sassdoc": {
+          "kind": "sass-design-token",
+          "selector": null,
+          "customProperty": "--button-color",
+          "variable": "$button-color",
+          "value": "#0f766e"
+        }
       },
       "source": {
         "model": "hia-source",
@@ -102,13 +116,13 @@
   ],
   "diagnostics": [],
   "metadata": {
-    "fixture": "sass-css-doc-source-map",
+    "source": "sassdoc",
     "docSourceMaps": [
       {
         "contract": "doc-source-map",
         "contractVersion": "0.1.0-draft",
-        "path": "fixtures/doc-source-map/sass-css/dist/button.docmap.json",
-        "entryArtifact": "fixtures/doc-source-map/sass-css/dist/button.css"
+        "path": "button.docmap.json",
+        "entryArtifact": null
       }
     ]
   }

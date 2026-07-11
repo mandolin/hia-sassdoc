@@ -3,5 +3,16 @@
   "version": "0.0.0",
   "private": true,
   "description": "Bridge between SassDoc and CSSDoc artifacts.",
-  "license": "MIT"
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.mjs"
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20.19.0"
+  }
 }

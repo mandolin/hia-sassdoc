@@ -1,0 +1,19 @@
+{
+  "$schema": "https://mandolin.github.io/HIA-Documentation/schemas/sassdoc-config-0.1.0-draft.schema.json",
+  "schemaVersion": "0.1.0-draft",
+  "workspaceRoot": ".",
+  "outputDirectory": "dist/sassdoc",
+  "inputs": [
+    {
+      "kind": "scss",
+      "path": "src/button.scss",
+      "artifactBasePath": "button"
+    }
+  ],
+  "options": {
+    "emitCssSourceMap": true,
+    "emitDocSourceMap": true,
+    "sourcesContentPolicy": "none",
+    "writeResultManifest": true
+  }
+}

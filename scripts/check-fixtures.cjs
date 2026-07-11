@@ -42,7 +42,6 @@ function main() {
   assert.equal(ordinaryMap.version, 3);
   assert.deepEqual(ordinaryMap.sources, ["../src/button.scss"]);
   assert.notEqual(ordinaryMap.mappings, "", "Dart Sass source map mappings must not be empty.");
-  assert.match(ordinaryMap.x_fixture_note, /Dart Sass 1\.101\.0/);
   assert.equal(Object.hasOwn(ordinaryMap, "x_doc_source_map"), false);
   assertNoSourcesContent(ordinaryMap);
 
@@ -56,7 +55,7 @@ function main() {
   const docmap = readJson("button.docmap.json");
   assert.equal(docmap.contract, "doc-source-map");
   assert.equal(docmap.contractVersion, "0.1.0-draft");
-  assert.equal(docmap.producer.profile, "sass-css-dart-sass-fixture");
+  assert.equal(docmap.producer.profile, "sass-css-dart-sass");
   assert.equal(docmap.privacy.sourcesContentPolicy, "none");
   assert.equal(docmap.sourceMaps[0].pointer.status, "not-written");
   assert.equal(docmap.sourceMaps[0].pointer.reservedExtensionField, "x_doc_source_map");

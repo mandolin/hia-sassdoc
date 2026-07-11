@@ -7,12 +7,15 @@
   "scripts": {
     "build:fixtures": "node scripts/build-fixtures.cjs",
     "check:fixtures": "node scripts/check-fixtures.cjs",
+    "check:pack": "node scripts/check-pack.cjs",
+    "check:standalone": "node scripts/check-standalone.cjs",
     "check:skeleton": "node scripts/check-skeleton.cjs",
-    "check:syntax": "node --check scripts/check-skeleton.cjs && node --check scripts/check-license-audit.cjs && node --check scripts/release-check.cjs && node --check scripts/build-fixtures.cjs && node --check scripts/check-fixtures.cjs",
+    "check:syntax": "node --check scripts/check-skeleton.cjs && node --check scripts/check-license-audit.cjs && node --check scripts/release-check.cjs && node --check scripts/build-fixtures.cjs && node --check scripts/check-fixtures.cjs && node --check scripts/check-pack.cjs && node --check scripts/check-standalone.cjs && node --check packages/sassdoc-spec/src/index.mjs && node --check packages/sass-doc-extractor/src/index.mjs && node --check packages/sass-doc-adapter/src/index.mjs && node --check packages/sass-cssdoc-bridge/src/index.mjs && node --check packages/sass-to-css-doc-source-map/src/index.mjs && node --check packages/sassdoc-runner/src/index.mjs && node --check packages/sassdoc-runner/src/schema.mjs && node --check packages/sassdoc-runner/src/cli.mjs && node --check packages/sassdoc-producer/src/index.mjs",
     "license:audit": "node scripts/check-license-audit.cjs",
     "release:check": "node scripts/release-check.cjs",
-    "release:gate": "npm run check:syntax && npm run build:fixtures && npm run check:skeleton && npm run check:fixtures && npm run license:audit && npm run release:check && npm pack --dry-run --json",
-    "test": "npm run build:fixtures && npm run check:skeleton && npm run check:fixtures",
+    "release:gate": "npm run check:syntax && npm run build:fixtures && npm run smoke:standalone && npm run check:skeleton && npm run check:fixtures && npm test && npm run check:standalone && npm run license:audit && npm run release:check && npm run check:pack",
+    "smoke:standalone": "sassdoc --config examples/standalone/sassdoc.config.json",
+    "test": "npm run build:fixtures && npm run check:skeleton && npm run check:fixtures && node --test test/sassdoc-runner.test.mjs",
     "test:all": "npm run release:gate"
   },
   "workspaces": [

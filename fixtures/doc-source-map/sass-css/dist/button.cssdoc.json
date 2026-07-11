@@ -1,7 +1,7 @@
 {
   "contract": "cssdoc-extraction",
   "contractVersion": "0.1.0-draft",
-  "id": "cssdoc:fixture:button",
+  "id": "cssdoc:fixtures/doc-source-map/sass-css/src/button.scss",
   "sourcesContentPolicy": "none",
   "source": {
     "path": "fixtures/doc-source-map/sass-css/src/button.scss",
@@ -9,9 +9,9 @@
   },
   "artifacts": [
     {
-      "id": "artifact:css:button",
+      "id": "artifact:css:button-css",
       "kind": "generated-css",
-      "path": "fixtures/doc-source-map/sass-css/dist/button.css",
+      "path": "button.css",
       "language": "css"
     }
   ],
@@ -21,7 +21,7 @@
       "kind": "css-component-style",
       "name": "Button",
       "selector": ".button",
-      "summary": "Button component style generated from a Sass source fixture.",
+      "summary": "Sass component style for Button.",
       "annotation": {
         "tag": "component",
         "name": "Button",
@@ -48,7 +48,7 @@
             "column": 21
           }
         },
-        "rangeSource": "fixture-parser",
+        "rangeSource": "sassdoc-parser",
         "confidence": "high"
       }
     },
@@ -69,8 +69,12 @@
             "column": 24
           }
         },
-        "rangeSource": "fixture-parser",
+        "rangeSource": "sassdoc-parser",
         "confidence": "high"
+      },
+      "metadata": {
+        "cssCustomProperty": "--button-color",
+        "sassVariable": "$button-color"
       }
     }
   ],

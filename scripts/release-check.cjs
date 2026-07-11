@@ -19,4 +19,12 @@ if (rootPackage.private !== true) {
   process.exit(1);
 }
 
+const npmIgnore = fs.readFileSync(path.join(root, ".npmignore"), "utf8");
+for (const requiredPattern of ["node_modules/", "packages/*/node_modules/", "*.tgz"]) {
+  if (!npmIgnore.includes(requiredPattern)) {
+    console.error(`Missing .npmignore release safety pattern: ${requiredPattern}`);
+    process.exit(1);
+  }
+}
+
 console.log("SassDoc release check passed.");

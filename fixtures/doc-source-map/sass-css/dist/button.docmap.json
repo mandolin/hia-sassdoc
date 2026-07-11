@@ -1,37 +1,37 @@
 {
   "contract": "doc-source-map",
   "contractVersion": "0.1.0-draft",
-  "id": "docmap:sass-css:button",
+  "id": "docmap:sass-css:fixtures-doc-source-map-sass-css-src-button-scss",
   "producer": {
-    "name": "@hia-doc/hia-sassdoc-workspace",
+    "name": "@hia-doc/sassdoc-runner",
     "version": "0.0.0",
-    "profile": "sass-css-dart-sass-fixture"
+    "profile": "sass-css-dart-sass"
   },
   "artifacts": [
     {
-      "id": "artifact:css:button",
+      "id": "artifact:css:primary",
       "kind": "generated-css",
-      "path": "fixtures/doc-source-map/sass-css/dist/button.css",
+      "path": "button.css",
       "language": "css",
       "role": "generated",
       "contractRefs": [
         {
           "contract": "cssdoc-extraction",
-          "path": "fixtures/doc-source-map/sass-css/dist/button.cssdoc.json"
+          "path": "button.cssdoc.json"
         }
       ]
     },
     {
-      "id": "artifact:hia:button",
+      "id": "artifact:hia:primary",
       "kind": "extraction-artifact",
-      "path": "fixtures/doc-source-map/sass-css/dist/button.hia.json",
+      "path": "button.hia.json",
       "language": "json",
       "role": "generated"
     }
   ],
   "sources": [
     {
-      "id": "source:scss:button",
+      "id": "source:sass:primary",
       "kind": "stylesheet-source",
       "path": "fixtures/doc-source-map/sass-css/src/button.scss",
       "language": "scss",
@@ -41,13 +41,13 @@
   ],
   "sourceMaps": [
     {
-      "id": "sourcemap:sass-css:button",
+      "id": "sourcemap:sass-css:primary",
       "kind": "ordinary-source-map",
       "format": "source-map-v3",
-      "path": "fixtures/doc-source-map/sass-css/dist/button.css.map",
-      "mapsFrom": "artifact:css:button",
+      "path": "button.css.map",
+      "mapsFrom": "artifact:css:primary",
       "mapsTo": [
-        "source:scss:button"
+        "source:sass:primary"
       ],
       "sourcesContentPolicy": "none",
       "pointer": {
@@ -58,25 +58,25 @@
   ],
   "chains": [
     {
-      "id": "chain:sass-css:button",
+      "id": "chain:sass-css:primary",
       "stages": [
         {
-          "from": "source:scss:button",
-          "to": "artifact:css:button",
+          "from": "source:sass:primary",
+          "to": "artifact:css:primary",
           "transform": "dart-sass",
-          "sourceMap": "sourcemap:sass-css:button",
+          "sourceMap": "sourcemap:sass-css:primary",
           "linkage": [
-            "entry:component:button",
-            "entry:token:button-color"
+            "entry:component-Button",
+            "entry:token-color-button-foreground"
           ]
         },
         {
-          "from": "artifact:css:button",
-          "to": "artifact:hia:button",
-          "transform": "cssdoc-to-hia-core",
+          "from": "artifact:css:primary",
+          "to": "artifact:hia:primary",
+          "transform": "sassdoc-to-hia-core",
           "sourceMap": null,
           "linkage": [
-            "entry:component:button"
+            "entry:component-Button"
           ]
         }
       ]
@@ -84,35 +84,32 @@
   ],
   "entries": [
     {
-      "id": "entry:component:button",
+      "id": "entry:component-Button",
       "kind": "symbol",
       "symbolKind": "css-component-style",
       "symbolId": "component:Button",
-      "annotation": {
-        "tag": "component",
-        "name": "Button"
-      },
       "sourceRefs": [
         {
-          "sourceId": "source:scss:button",
+          "sourceId": "source:sass:primary",
           "range": {
             "start": {
-              "line": 1,
+              "line": 3,
               "column": 1
             },
             "end": {
-              "line": 6,
-              "column": 4
+              "line": 3,
+              "column": 21
             }
           },
-          "rangeSource": "fixture-parser",
+          "rangeSource": "sassdoc-parser",
           "confidence": "high"
         }
       ],
       "artifactRefs": [
         {
-          "artifactId": "artifact:css:button",
+          "artifactId": "artifact:css:primary",
           "selector": ".button",
+          "property": "--button-color",
           "rangeSource": "adapter",
           "confidence": "medium"
         }
@@ -120,13 +117,13 @@
       "diagnostics": []
     },
     {
-      "id": "entry:token:button-color",
+      "id": "entry:token-color-button-foreground",
       "kind": "design-token-link",
       "symbolKind": "design-token",
       "symbolId": "token:color.button.foreground",
       "sourceRefs": [
         {
-          "sourceId": "source:scss:button",
+          "sourceId": "source:sass:primary",
           "range": {
             "start": {
               "line": 7,
@@ -137,14 +134,14 @@
               "column": 24
             }
           },
-          "rangeSource": "fixture-parser",
+          "rangeSource": "sassdoc-parser",
           "confidence": "high"
         }
       ],
       "artifactRefs": [
         {
-          "artifactId": "artifact:css:button",
-          "selector": ".button",
+          "artifactId": "artifact:css:primary",
+          "selector": null,
           "property": "--button-color",
           "rangeSource": "adapter",
           "confidence": "medium"

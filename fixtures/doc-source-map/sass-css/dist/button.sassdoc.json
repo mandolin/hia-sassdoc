@@ -1,0 +1,77 @@
+{
+  "contract": "sassdoc-extraction",
+  "contractVersion": "0.1.0-draft",
+  "id": "sassdoc:fixtures/doc-source-map/sass-css/src/button.scss",
+  "sourcesContentPolicy": "none",
+  "source": {
+    "path": "fixtures/doc-source-map/sass-css/src/button.scss",
+    "language": "scss"
+  },
+  "symbols": [
+    {
+      "id": "component:Button",
+      "kind": "sass-component-style",
+      "name": "Button",
+      "selector": ".button",
+      "summary": "Sass component style for Button.",
+      "annotation": {
+        "tag": "component",
+        "name": "Button",
+        "range": {
+          "start": {
+            "line": 1,
+            "column": 1
+          },
+          "end": {
+            "line": 6,
+            "column": 4
+          }
+        }
+      },
+      "source": {
+        "path": "fixtures/doc-source-map/sass-css/src/button.scss",
+        "range": {
+          "start": {
+            "line": 3,
+            "column": 1
+          },
+          "end": {
+            "line": 3,
+            "column": 21
+          }
+        },
+        "rangeSource": "sassdoc-parser",
+        "confidence": "high"
+      },
+      "metadata": {
+        "customProperty": "--button-color"
+      }
+    },
+    {
+      "id": "token:color.button.foreground",
+      "kind": "sass-design-token",
+      "name": "color.button.foreground",
+      "value": "#0f766e",
+      "source": {
+        "path": "fixtures/doc-source-map/sass-css/src/button.scss",
+        "range": {
+          "start": {
+            "line": 7,
+            "column": 1
+          },
+          "end": {
+            "line": 7,
+            "column": 24
+          }
+        },
+        "rangeSource": "sassdoc-parser",
+        "confidence": "high"
+      },
+      "metadata": {
+        "customProperty": "--button-color",
+        "variable": "$button-color"
+      }
+    }
+  ],
+  "diagnostics": []
+}

@@ -3,5 +3,16 @@
   "version": "0.0.0",
   "private": true,
   "description": "Sass to CSS documentation source-map linkage.",
-  "license": "MIT"
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.mjs"
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20.19.0"
+  }
 }

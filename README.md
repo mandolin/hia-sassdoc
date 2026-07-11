@@ -11,10 +11,12 @@ This repository is planned as an umbrella monorepo for Sass documentation specif
 - `@hia-doc/sass-doc-adapter`: SassDoc extraction artifact to HIA core document.
 - `@hia-doc/sass-to-css-doc-source-map`: Sass to CSS documentation source-map linkage.
 - `@hia-doc/sass-cssdoc-bridge`: SassDoc and CSSDoc bridge.
+- `@hia-doc/sassdoc-runner`: Standalone SassDoc API, config loader and CLI.
+- `@hia-doc/sassdoc-producer`: Documentation producer adapter for HIA project builds.
 
 ## Status
 
-This workspace has a W-P9.3 Dart Sass fixture compiler for Sass-to-CSS documentation source-map linkage. Public package publishing remains intentionally disabled until package naming and release sequencing are finalized.
+This workspace has a W-P11.3 standalone runner surface for Sass-to-CSS documentation source-map linkage. Public package publishing remains intentionally disabled until package naming and release sequencing are finalized.
 
 ## Fixtures
 
@@ -27,6 +29,14 @@ The first fixture lives under `fixtures/doc-source-map/sass-css/` and demonstrat
 - HIA core document fixture.
 
 This fixture is generated with Dart Sass `1.101.0` under the repository-local mise toolchain. It validates the artifact contract, source-map path normalization and path/privacy rules.
+
+## Standalone Usage
+
+```sh
+sassdoc --config examples/standalone/sassdoc.config.json
+```
+
+The runner writes generated CSS, ordinary source map, SassDoc extraction, CSSDoc bridge artifact, HIA document, doc-source-map manifest and `sassdoc.producer-result.json`.
 
 ## Development
 

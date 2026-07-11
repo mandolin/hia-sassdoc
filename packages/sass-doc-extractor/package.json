@@ -3,5 +3,19 @@
   "version": "0.0.0",
   "private": true,
   "description": "Sass source to SassDoc extraction artifact.",
-  "license": "MIT"
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.mjs"
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "dependencies": {
+    "@hia-doc/sassdoc-spec": "0.0.0"
+  }
 }

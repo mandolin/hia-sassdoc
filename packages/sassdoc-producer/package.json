@@ -1,0 +1,22 @@
+{
+  "name": "@hia-doc/sassdoc-producer",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Documentation producer adapter for SassDoc.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.mjs"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "dependencies": {
+    "@hia-doc/sassdoc-runner": "0.0.0"
+  }
+}

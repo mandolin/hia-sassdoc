@@ -1,0 +1,12 @@
+/**
+ * @component Button
+ * @selector .button
+ * @token color.button.foreground
+ * @custom-property --button-color
+ */
+$button-color: #0f766e;
+
+.button {
+  --button-color: #{$button-color};
+  color: var(--button-color);
+}

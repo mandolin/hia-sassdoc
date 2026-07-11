@@ -1,0 +1,30 @@
+{
+  "name": "@hia-doc/sassdoc-runner",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Standalone SassDoc project runner and CLI.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.mjs"
+  },
+  "bin": {
+    "sassdoc": "./src/cli.mjs"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "dependencies": {
+    "@hia-doc/sass-cssdoc-bridge": "0.0.0",
+    "@hia-doc/sass-doc-adapter": "0.0.0",
+    "@hia-doc/sass-doc-extractor": "0.0.0",
+    "@hia-doc/sass-to-css-doc-source-map": "0.0.0",
+    "@hia-doc/sassdoc-spec": "0.0.0",
+    "sass": "1.101.0"
+  }
+}

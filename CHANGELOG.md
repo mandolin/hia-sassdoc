@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Add `@hia-doc/sassdoc-runner` and `@hia-doc/sassdoc-producer`.
+- Add standalone SassDoc config, CLI, producer result, pack gate and runner tests.
+- Move the Sass-to-CSS fixture generation onto the shared runner API.
+
 ## 0.0.0
 
 - Initialize HIA SassDoc bootstrap workspace.
