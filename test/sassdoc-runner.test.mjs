@@ -11,6 +11,8 @@ import {
   loadSassDocConfig,
   runSassDoc
 } from "../packages/sassdoc-runner/src/index.mjs";
+import { extractSassDoc } from "../packages/sass-doc-extractor/src/index.mjs";
+import { sassExtractionToHiaDocument } from "../packages/sass-doc-adapter/src/index.mjs";
 import { sassdocProducer } from "../packages/sassdoc-producer/src/index.mjs";
 
 const source = `/**
@@ -25,6 +27,23 @@ $button-color: #0f766e;
   --button-color: #{$button-color};
 }
 `;
+
+test("SassDoc maps @lang and inline <lang> into HIA i18n fields", () => {
+  const extraction = extractSassDoc(`/**
+ * Button style for <lang><zh-CN>主要动作</zh-CN><en>primary actions</en></lang>.
+ * @component Button
+ * @selector .button
+ * @lang zh-CN 按钮样式。
+ */
+.button { color: #0f766e; }
+`, { path: "button.scss" });
+  const document = sassExtractionToHiaDocument(extraction, { title: "Sass Locale" });
+  const component = document.symbols.find((symbol) => symbol.id === "component:Button");
+
+  assert.ok(document.locales.includes("zh-CN"));
+  assert.equal(component.i18n.fields.description.localizedText["zh-CN"], "按钮样式。");
+  assert.equal(component.i18n.fields.description.localizedText.en, "Button style for primary actions.");
+});
 
 test("runSassDoc emits producer result artifacts", async () => {
   const workspaceRoot = await mkdtemp(path.join(os.tmpdir(), "hia-sassdoc-"));

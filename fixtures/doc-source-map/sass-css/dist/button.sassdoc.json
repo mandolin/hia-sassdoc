@@ -2,6 +2,10 @@
   "contract": "sassdoc-extraction",
   "contractVersion": "0.1.0-draft",
   "id": "sassdoc:fixtures/doc-source-map/sass-css/src/button.scss",
+  "defaultLocale": "en",
+  "locales": [
+    "en"
+  ],
   "sourcesContentPolicy": "none",
   "source": {
     "path": "fixtures/doc-source-map/sass-css/src/button.scss",

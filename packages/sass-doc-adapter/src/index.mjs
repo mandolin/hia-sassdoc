@@ -9,13 +9,14 @@
 export function sassExtractionToHiaDocument(extraction, options = {}) {
   const sourcePath = normalizePath(extraction.source?.path ?? "source.scss");
   const symbols = (extraction.symbols ?? []).map((symbol) => toHiaSymbol(symbol, sourcePath));
+  const defaultLocale = options.defaultLocale ?? extraction.defaultLocale ?? "en";
 
   return {
     schemaVersion: "0.2.0",
     id: options.id ?? `sassdoc:${sourcePath}`,
     title: options.title ?? "SassDoc",
-    defaultLocale: "en",
-    locales: ["en"],
+    defaultLocale,
+    locales: collectDocumentLocales(options.locales, extraction.locales, symbols, defaultLocale),
     nodes: [
       {
         id: "node.sassdoc",
@@ -45,11 +46,11 @@ export function sassExtractionToHiaDocument(extraction, options = {}) {
 
 function toHiaSymbol(symbol, sourcePath) {
   const range = symbol.source?.range ?? symbol.annotation?.range ?? null;
-  return {
+  const mapped = {
     id: symbol.id,
     kind: symbol.kind === "sass-design-token" ? "design-token" : "css-component-style",
     name: symbol.name,
-    summary: symbol.summary ?? (symbol.kind === "sass-design-token" ? `Sass design token ${symbol.name}.` : `Sass component style ${symbol.name}.`),
+    summary: symbol.i18n?.fields?.description?.defaultText ?? symbol.summary ?? (symbol.kind === "sass-design-token" ? `Sass design token ${symbol.name}.` : `Sass component style ${symbol.name}.`),
     metadata: {
       sassdoc: {
         kind: symbol.kind,
@@ -80,8 +81,29 @@ function toHiaSymbol(symbol, sourcePath) {
       diagnostics: []
     }
   };
+  if (symbol.i18n) {
+    mapped.i18n = symbol.i18n;
+  }
+  return mapped;
 }
 
 function normalizePath(value) {
   return String(value).replaceAll("\\", "/");
+}
+
+function collectDocumentLocales(optionLocales, artifactLocales, symbols, defaultLocale) {
+  const locales = [
+    defaultLocale,
+    ...(Array.isArray(optionLocales) ? optionLocales : []),
+    ...(Array.isArray(artifactLocales) ? artifactLocales : [])
+  ];
+  for (const symbol of symbols) {
+    locales.push(...(Array.isArray(symbol.i18n?.locales) ? symbol.i18n.locales : []));
+  }
+  return [...new Set(locales.map((locale) => normalizeLocale(locale)).filter(Boolean))];
+}
+
+function normalizeLocale(value) {
+  const locale = String(value ?? "").trim().replace(/_/g, "-");
+  return /^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/.test(locale) ? locale : "";
 }

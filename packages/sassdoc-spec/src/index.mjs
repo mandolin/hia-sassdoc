@@ -10,5 +10,6 @@ export const SASSDOC_TAGS = Object.freeze([
   "component",
   "selector",
   "token",
-  "custom-property"
+  "custom-property",
+  "lang"
 ]);
