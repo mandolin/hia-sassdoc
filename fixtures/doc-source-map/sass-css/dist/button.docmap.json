@@ -141,7 +141,6 @@
       "artifactRefs": [
         {
           "artifactId": "artifact:css:primary",
-          "selector": null,
           "property": "--button-color",
           "rangeSource": "adapter",
           "confidence": "medium"

@@ -1,4 +1,7 @@
+/** @file @lang zh-CN Sass/CSS文档映射生成，不把缺失可选位置写成null。 @lang en Sass/CSS documentation-map generation without null absent optional locations. */
 /**
+ * @lang zh-CN 生成Sass/CSS/HIA声明映射；路径保持相对，默认不嵌入源码正文，不读取普通map。
+ * @lang en Generates Sass/CSS/HIA declaration links with relative paths and no embedded source by default, without reading ordinary maps.
  * 生成 Sass -> CSS -> HIA 的 documentation source map manifest。
  * Creates a documentation source map manifest for Sass -> CSS -> HIA linkage.
  *
@@ -15,6 +18,9 @@ export function createSassToCssDocumentationSourceMap(options = {}) {
   const entries = [];
 
   for (const symbol of options.sassExtraction?.symbols ?? []) {
+    // <lang><zh-CN>范围与CSS选择器均为可选；保留符号本身，缺失时不生成错型null字段。</zh-CN><en>Ranges and CSS selectors are optional; retain the symbol while omitting absent fields instead of emitting wrong-type nulls.</en></lang>
+    const range = symbol.source?.range ?? symbol.annotation?.range;
+    const selector = symbol.selector;
     entries.push({
       id: `entry:${slug(symbol.id)}`,
       kind: symbol.kind === "sass-design-token" ? "design-token-link" : "symbol",
@@ -23,7 +29,7 @@ export function createSassToCssDocumentationSourceMap(options = {}) {
       sourceRefs: [
         {
           sourceId: "source:sass:primary",
-          range: symbol.source?.range ?? symbol.annotation?.range ?? null,
+          ...(range != null ? { range } : {}),
           rangeSource: symbol.source?.rangeSource ?? "sassdoc-parser",
           confidence: symbol.source?.confidence ?? "medium"
         }
@@ -31,7 +37,7 @@ export function createSassToCssDocumentationSourceMap(options = {}) {
       artifactRefs: [
         {
           artifactId: "artifact:css:primary",
-          selector: symbol.selector ?? null,
+          ...(typeof selector === "string" && selector.length > 0 ? { selector } : {}),
           property: symbol.metadata?.customProperty ?? null,
           rangeSource: "adapter",
           confidence: "medium"
