@@ -35,6 +35,8 @@ export function extractSassDoc(source, options = {}) {
     const customProperty = firstTagValue(block.tags, "custom-property");
     const summary = firstSummary(block.description, `Sass component style for ${componentName}.`);
     const i18n = createDescriptionI18n(summary, block.tags, defaultLocale, "sassdoc.comment");
+    // <lang><zh-CN>只在注释结束后查找选择器规则；缺失时保留注释位置及其较低置信度。</zh-CN><en>Search for a selector rule only after the annotation; preserve the annotation location and lower confidence when no rule is found.</en></lang>
+    const selectorRange = findLineRange(source, selector, block.range.end);
 
     symbols.push({
       id: `component:${componentName}`,
@@ -50,9 +52,9 @@ export function extractSassDoc(source, options = {}) {
       },
       source: {
         path,
-        range: findLineRange(source, selector) ?? block.range,
-        rangeSource: "sassdoc-parser",
-        confidence: "high"
+        range: selectorRange ?? block.range,
+        rangeSource: selectorRange ? "sassdoc-parser" : "annotation",
+        confidence: selectorRange ? "high" : "medium"
       },
       metadata: {
         customProperty: customProperty ?? null
@@ -331,16 +333,38 @@ function parseAttributes(rawAttributes) {
   return attributes;
 }
 
-function findLineRange(source, marker) {
+/**
+ * @lang zh-CN 在 SassDoc 注释结束之后，按完整选择器前缀寻找可能的规则行；不把标签、注释或相似名称误认成源码规则。复杂 Sass 语法仍须由解析器另行核实。
+ * @lang en Finds a likely rule line by complete selector prefix after the SassDoc annotation; excludes tags, comments, and similarly named selectors. Complex Sass syntax still needs parser verification.
+ * @param {string} source Sass/SCSS 源码；Sass/SCSS source text.
+ * @param {string} marker 标签声明的选择器；Selector declared by the tag.
+ * @param {{line:number,column:number}} after 注释末位置（一基 UTF-16 列）；Annotation end position (one-based UTF-16 column).
+ * @returns {{start:{line:number,column:number},end:{line:number,column:number}} | null} 可能的选择器至行尾半开范围，未找到时为 null；Likely selector-to-line-end half-open range, or null if absent.
+ */
+function findLineRange(source, marker, after) {
+  // <lang><zh-CN>CRLF 与 LF 都按同一行模型扫描；起始行只检查注释终点之后。</zh-CN><en>Scan CRLF and LF with the same line model; inspect only text after the annotation end on its final line.</en></lang>
   const lines = source.split(/\r?\n/);
-  const lineIndex = lines.findIndex((line) => line.includes(marker));
-  if (lineIndex === -1) {
-    return null;
+  for (let lineIndex = after.line - 1; lineIndex < lines.length; lineIndex += 1) {
+    // <lang><zh-CN>首行可能在注释结束后接规则；后续行从列零开始。</zh-CN><en>The first line may continue with a rule after the annotation; later lines start at column zero.</en></lang>
+    const line = lines[lineIndex];
+    const segmentStart = lineIndex === after.line - 1 ? after.column - 1 : 0;
+    const segment = line.slice(segmentStart);
+    const leadingWhitespace = segment.match(/^\s*/u)?.[0].length ?? 0;
+    const candidate = segment.slice(leadingWhitespace);
+    if (!candidate.startsWith(marker)) {
+      continue;
+    }
+    // <lang><zh-CN>选择器后必须是规则分隔符或结束；字母、数字、下划线和连字符说明只是相似名称。</zh-CN><en>The selector must end or continue with a rule delimiter; letters, digits, underscores, and hyphens indicate only a similar name.</en></lang>
+    const next = candidate[marker.length] ?? "";
+    if (next !== "" && !/[\s:{,[>+~.#]/u.test(next)) {
+      continue;
+    }
+    return {
+      start: { line: lineIndex + 1, column: segmentStart + leadingWhitespace + 1 },
+      end: { line: lineIndex + 1, column: line.length + 1 }
+    };
   }
-  return {
-    start: { line: lineIndex + 1, column: 1 },
-    end: { line: lineIndex + 1, column: lines[lineIndex].length + 1 }
-  };
+  return null;
 }
 
 function offsetRange(source, startOffset, endOffset) {

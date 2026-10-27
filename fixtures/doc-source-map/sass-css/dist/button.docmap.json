@@ -93,12 +93,12 @@
           "sourceId": "source:sass:primary",
           "range": {
             "start": {
-              "line": 3,
+              "line": 9,
               "column": 1
             },
             "end": {
-              "line": 3,
-              "column": 21
+              "line": 9,
+              "column": 10
             }
           },
           "rangeSource": "sassdoc-parser",

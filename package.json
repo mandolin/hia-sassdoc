@@ -15,7 +15,7 @@
     "release:check": "node scripts/release-check.cjs",
     "release:gate": "npm run check:syntax && npm run build:fixtures && npm run smoke:standalone && npm run check:skeleton && npm run check:fixtures && npm test && npm run check:standalone && npm run license:audit && npm run release:check && npm run check:pack",
     "smoke:standalone": "sassdoc --config examples/standalone/sassdoc.config.json",
-    "test": "npm run build:fixtures && npm run check:skeleton && npm run check:fixtures && node --test test/sassdoc-runner.test.mjs test/doc-source-map-shape.test.mjs",
+    "test": "npm run build:fixtures && npm run check:skeleton && npm run check:fixtures && node --test test/sassdoc-runner.test.mjs test/doc-source-map-shape.test.mjs test/source-range.test.mjs",
     "test:all": "npm run release:gate"
   },
   "workspaces": [
