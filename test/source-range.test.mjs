@@ -4,10 +4,14 @@
  * @lang en Verifies that Sass component source ranges select actual rules and explicitly fall back to annotation ranges.
  */
 import assert from "node:assert/strict";
+import { mkdtemp, readFile, realpath, rm, writeFile } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import test from "node:test";
 
 import { extractSassDoc } from "../packages/sass-doc-extractor/src/index.mjs";
 import { createSassToCssDocumentationSourceMap } from "../packages/sass-to-css-doc-source-map/src/index.mjs";
+import { runSassDoc } from "../packages/sassdoc-runner/src/index.mjs";
 
 test("component selector ignores its tag and preceding comment", () => {
   // <lang><zh-CN>标签与注释都包含选择器，真实规则位于第六行。</zh-CN><en>The tag and comment contain the selector; the actual rule is on line six.</en></lang>
@@ -82,4 +86,88 @@ test("complex interpolated token range remains an unknown location hint", () => 
     endBoundary: "unknown",
     columnUnit: "unknown"
   });
+});
+
+test("real Sass runner keeps nested, interpolated, and multiline selectors as unknown range hints", async () => {
+  // <lang><zh-CN>三个可编译的输入分别覆盖同名嵌套规则、选择器插值和 CRLF 跨行组合。</zh-CN><en>Three compilable inputs cover a nested same-name rule, selector interpolation, and a CRLF multiline combination.</en></lang>
+  const cases = [
+    {
+      name: "nested-same-name",
+      source: [
+        "/**", " * @component Item", " * @selector .item", " */",
+        ".wrapper {", "  .item { color: red; }", "}", ".item { color: blue; }"
+      ].join("\n"),
+      start: { line: 6, column: 3 }
+    },
+    {
+      name: "interpolated-selector",
+      source: [
+        "$state: active;", "/**", " * @component DynamicItem",
+        " * @selector .item-#{$state}", " */", ".item-#{$state} { color: red; }"
+      ].join("\n"),
+      start: { line: 6, column: 1 }
+    },
+    {
+      name: "combined-selector-crlf",
+      source: [
+        "/**", " * @component Combined", " * @selector .first", " */",
+        ".first,", ".second { color: red; }"
+      ].join("\r\n"),
+      start: { line: 5, column: 1 }
+    }
+  ];
+  // <lang><zh-CN>隔离输出避免污染仓库工件；真实运行器还会经过 Dart Sass 编译。</zh-CN><en>Isolate outputs from repository artifacts; the real runner also compiles each input with Dart Sass.</en></lang>
+  const workspaceRoot = await mkdtemp(path.join(os.tmpdir(), "hia-sass-range-"));
+  try {
+    const outputDirectory = path.join(workspaceRoot, "dist");
+    for (const item of cases) {
+      await writeFile(path.join(workspaceRoot, `${item.name}.scss`), item.source, "utf8");
+    }
+    const result = await runSassDoc({
+      workspaceRoot,
+      outputDirectory,
+      inputs: cases.map((item) => ({ kind: "scss", path: `${item.name}.scss`, artifactBasePath: item.name })),
+      options: { writeResultManifest: false }
+    });
+    assert.equal(result.status, "success", JSON.stringify(result.diagnostics));
+    for (const item of cases) {
+      const extraction = JSON.parse(await readFile(path.join(outputDirectory, `${item.name}.sassdoc.json`), "utf8"));
+      const map = JSON.parse(await readFile(path.join(outputDirectory, `${item.name}.docmap.json`), "utf8"));
+      const css = await readFile(path.join(outputDirectory, `${item.name}.css`), "utf8");
+      const ref = map.entries[0].sourceRefs[0];
+      assert.ok(css.trim(), `${item.name} CSS output`);
+      assert.equal(map.contractVersion, "1.1.0");
+      assert.deepEqual(ref.range.start, item.start);
+      assert.deepEqual(ref.range, extraction.symbols[0].source.range);
+      assert.deepEqual(ref.rangeConvention, { endBoundary: "unknown", columnUnit: "unknown" });
+    }
+  } finally {
+    // <lang><zh-CN>递归清理前核真实绝对路径只能是系统 temp 下本测试创建的单层前缀目录。</zh-CN><en>Before recursive cleanup, verify the real absolute target is a single prefixed test directory directly under system temp.</en></lang>
+    const actualTempRoot = await realpath(os.tmpdir());
+    const actualWorkspaceRoot = await realpath(workspaceRoot);
+    const relativeWorkspaceRoot = path.relative(actualTempRoot, actualWorkspaceRoot);
+    if (!path.isAbsolute(actualWorkspaceRoot)
+      || path.isAbsolute(relativeWorkspaceRoot)
+      || path.dirname(relativeWorkspaceRoot) !== "."
+      || !relativeWorkspaceRoot.startsWith("hia-sass-range-")) {
+      throw new Error("Refusing recursive cleanup outside the Sass range test directory.");
+    }
+    await rm(actualWorkspaceRoot, { recursive: true });
+  }
+});
+
+test("plain selector after a non-BMP annotation uses one-based UTF-16 and an exclusive end", () => {
+  // <lang><zh-CN>注释中的非 BMP 字符位于规则同一行，UTF-16 列比 Unicode 码点列多一。</zh-CN><en>A non-BMP character precedes the rule on the same line, making its UTF-16 column one greater than its code-point column.</en></lang>
+  const source = "/** @component Plain\n * @selector .card\n * @lang en 😀 */ .card { color: red; }";
+  const line = source.split("\n")[2];
+  const extraction = extractSassDoc(source, { path: "plain.scss" });
+  const map = createSassToCssDocumentationSourceMap({ sassExtraction: extraction });
+  const ref = map.entries[0].sourceRefs[0];
+  assert.equal(ref.range.start.column, line.lastIndexOf(".card") + 1);
+  assert.equal(ref.range.start.column - (Array.from(line.slice(0, line.lastIndexOf(".card"))).length + 1), 1);
+  assert.deepEqual(ref.range, {
+    start: { line: 3, column: 19 },
+    end: { line: 3, column: line.length + 1 }
+  });
+  assert.deepEqual(ref.rangeConvention, { endBoundary: "exclusive", columnUnit: "utf16-code-unit" });
 });
