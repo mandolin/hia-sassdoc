@@ -12,6 +12,7 @@ const relativePath = {
   }
 };
 
+/** @lang zh-CN SassDoc 配置草案结构，坐标侧载为默认关闭的显式布尔选项。 @lang en Draft SassDoc configuration shape with an explicit coordinate-sidecar boolean disabled by default. */
 export const SASSDOC_CONFIG_JSON_SCHEMA = Object.freeze({
   $schema: "https://json-schema.org/draft/2020-12/schema",
   $id: SASSDOC_CONFIG_SCHEMA_ID,
@@ -45,6 +46,7 @@ export const SASSDOC_CONFIG_JSON_SCHEMA = Object.freeze({
       properties: {
         emitDocSourceMap: { type: "boolean" },
         emitCssSourceMap: { type: "boolean" },
+        emitCoordinateProfile: { type: "boolean" },
         sourcesContentPolicy: { enum: ["none", "reference", "embed"] },
         writeResultManifest: { type: "boolean" },
         sassStyle: { enum: ["expanded", "compressed"] }
