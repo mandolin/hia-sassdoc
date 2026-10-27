@@ -3,7 +3,7 @@
  * Converts a SassDoc extraction artifact into a HIA core document.
  *
  * @param {object} extraction SassDoc extraction artifact.
- * @param {{ id?: string, title?: string, docSourceMapPath?: string }} [options]
+ * @param {{ id?: string, title?: string, docSourceMapPath?: string, docSourceMapContractVersion?: string }} [options] 映射身份由调用方显式传入，旧调用保留旧配对；The caller supplies the map identity explicitly, and older calls retain their old pairing.
  * @returns {object} HIA core document.
  */
 export function sassExtractionToHiaDocument(extraction, options = {}) {
@@ -34,7 +34,7 @@ export function sassExtractionToHiaDocument(extraction, options = {}) {
         docSourceMaps: [
           {
             contract: "doc-source-map",
-            contractVersion: "0.1.0-draft",
+            contractVersion: options.docSourceMapContractVersion ?? "0.1.0-draft",
             path: normalizePath(options.docSourceMapPath),
             entryArtifact: null
           }

@@ -24,6 +24,13 @@ test("component selector ignores its tag and preceding comment", () => {
   });
   assert.equal(component.source.rangeSource, "sassdoc-parser");
   assert.deepEqual(map.entries[0].sourceRefs[0].range, component.source.range);
+  assert.equal(map.contractVersion, "1.1.0");
+  assert.deepEqual(map.entries[0].sourceRefs[0].rangeConvention, {
+    endBoundary: "exclusive",
+    columnUnit: "utf16-code-unit"
+  });
+  assert.equal(map.entries[0].sourceRefs[0].rangeSource, "parser");
+  assert.equal(map.entries[0].sourceRefs[0].rangeSourceDetail, "sassdoc-parser");
   assert.equal(rule.length - Array.from(rule).length, 1);
 });
 
@@ -37,6 +44,12 @@ test("component without a matching rule falls back to its annotation", () => {
   assert.deepEqual(component.source.range, component.annotation.range);
   assert.equal(component.source.rangeSource, "annotation");
   assert.equal(component.source.confidence, "medium");
+  const map = createSassToCssDocumentationSourceMap({ sassExtraction: extraction });
+  assert.deepEqual(map.entries[0].sourceRefs[0].rangeConvention, {
+    endBoundary: "exclusive",
+    columnUnit: "utf16-code-unit"
+  });
+  assert.equal(map.entries[0].sourceRefs[0].rangeSourceDetail, "annotation");
 });
 
 test("component selector can start after a same-line annotation", () => {
@@ -50,5 +63,23 @@ test("component selector can start after a same-line annotation", () => {
   assert.deepEqual(component.source.range, {
     start: { line: 2, column: ruleLine.indexOf(".card:hover") + 1 },
     end: { line: 2, column: ruleLine.length + 1 }
+  });
+  const map = createSassToCssDocumentationSourceMap({ sassExtraction: extraction });
+  assert.deepEqual(map.entries[0].sourceRefs[0].rangeConvention, {
+    endBoundary: "unknown",
+    columnUnit: "unknown"
+  });
+});
+
+test("complex interpolated token range remains an unknown location hint", () => {
+  // <lang><zh-CN>跨行或插值变量可由正则找到数值范围，但不能据此声称 Sass 语义定位精确。</zh-CN><en>A regex may find a numeric range in an interpolated assignment without proving its Sass semantic location.</en></lang>
+  const source = "/** @component Card\n * @token color.card */\n$card-color: #{theme(color)};\n.card { color: red; }";
+  const extraction = extractSassDoc(source, { path: "card.scss" });
+  const map = createSassToCssDocumentationSourceMap({ sassExtraction: extraction });
+  const token = map.entries.find((entry) => entry.kind === "design-token-link");
+  assert.ok(token);
+  assert.deepEqual(token.sourceRefs[0].rangeConvention, {
+    endBoundary: "unknown",
+    columnUnit: "unknown"
   });
 });

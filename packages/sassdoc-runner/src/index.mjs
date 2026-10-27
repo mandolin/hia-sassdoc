@@ -175,12 +175,8 @@ async function processInput(input, request, index) {
     generatedCssPath: cssPath,
     sourcesContentPolicy: request.options.sourcesContentPolicy
   });
-  const document = sassExtractionToHiaDocument(sassExtraction, {
-    id: `sassdoc:${input.path}`,
-    title: path.posix.basename(input.path),
-    docSourceMapPath
-  });
-  const docSourceMap = createSassToCssDocumentationSourceMap({
+  // <lang><zh-CN>先得到实际写入的地图身份，再创建文档引用；关闭地图输出时不声明不存在的文件。</zh-CN><en>Create the actual map identity before the document reference; do not advertise a nonexistent file when map output is disabled.</en></lang>
+  const docSourceMap = request.options.emitDocSourceMap ? createSassToCssDocumentationSourceMap({
     sassExtraction,
     cssDocExtraction: cssExtraction,
     sourcePath: input.path,
@@ -191,12 +187,20 @@ async function processInput(input, request, index) {
     hiaDocumentPath,
     sourcesContentPolicy: request.options.sourcesContentPolicy,
     producerVersion: SASSDOC_RUNNER_VERSION
+  }) : null;
+  const document = sassExtractionToHiaDocument(sassExtraction, {
+    id: `sassdoc:${input.path}`,
+    title: path.posix.basename(input.path),
+    ...(docSourceMap ? {
+      docSourceMapPath,
+      docSourceMapContractVersion: docSourceMap.contractVersion
+    } : {})
   });
 
   await writeJson(path.join(request.outputDirectory, sassExtractionPath), sassExtraction);
   await writeJson(path.join(request.outputDirectory, cssExtractionPath), cssExtraction);
   await writeJson(path.join(request.outputDirectory, hiaDocumentPath), document);
-  if (request.options.emitDocSourceMap) {
+  if (docSourceMap) {
     await writeJson(path.join(request.outputDirectory, docSourceMapPath), docSourceMap);
   }
 
@@ -223,11 +227,11 @@ async function processInput(input, request, index) {
       contractVersion: "3"
     });
   }
-  if (request.options.emitDocSourceMap) {
+  if (docSourceMap) {
     artifacts.push({
       ...artifact(`${artifactIdBase}-doc-source-map`, "doc-source-map", docSourceMapPath, "json", "application/json", request.profileIds),
       contract: "doc-source-map",
-      contractVersion: "0.1.0-draft"
+      contractVersion: docSourceMap.contractVersion
     });
   }
 

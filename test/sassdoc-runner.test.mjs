@@ -61,12 +61,49 @@ test("runSassDoc emits producer result artifacts", async () => {
     assert.equal(result.artifacts.length, 6);
     assert.ok(result.artifacts.some((artifact) => artifact.kind === "sassdoc-extraction"));
     assert.ok(result.artifacts.some((artifact) => artifact.kind === "doc-source-map"));
+    assert.equal(result.artifacts.find((artifact) => artifact.kind === "doc-source-map").contractVersion, "1.1.0");
 
     const hia = JSON.parse(await readFile(path.join(workspaceRoot, "dist", "button.hia.json"), "utf8"));
     assert.ok(hia.symbols.some((symbol) => symbol.id === "component:Button"));
+    assert.equal(hia.metadata.docSourceMaps[0].contractVersion, "1.1.0");
+    const docmap = JSON.parse(await readFile(path.join(workspaceRoot, "dist", "button.docmap.json"), "utf8"));
+    assert.equal(docmap.contractVersion, "1.1.0");
+    assert.deepEqual(docmap.entries[0].sourceRefs[0].rangeConvention, {
+      endBoundary: "exclusive",
+      columnUnit: "utf16-code-unit"
+    });
   } finally {
     await rm(workspaceRoot, { recursive: true, force: true });
   }
+});
+
+test("disabled documentation map emits no file, artifact or HIA reference", async () => {
+  // <lang><zh-CN>关闭地图输出时，文档元数据及生产结果都不能声明不存在的地图。</zh-CN><en>With map output disabled, neither document metadata nor the producer result may advertise a nonexistent map.</en></lang>
+  const workspaceRoot = await mkdtemp(path.join(os.tmpdir(), "hia-sassdoc-no-map-"));
+  try {
+    await writeFile(path.join(workspaceRoot, "button.scss"), source, "utf8");
+    const result = await runSassDoc({
+      workspaceRoot,
+      outputDirectory: path.join(workspaceRoot, "dist"),
+      inputs: [{ kind: "scss", path: "button.scss", artifactBasePath: "button" }],
+      options: { emitDocSourceMap: false }
+    });
+    const hia = JSON.parse(await readFile(path.join(workspaceRoot, "dist", "button.hia.json"), "utf8"));
+    assert.equal(result.status, "success");
+    assert.equal(result.artifacts.some((artifact) => artifact.kind === "doc-source-map"), false);
+    assert.equal(Object.hasOwn(hia.metadata, "docSourceMaps"), false);
+    await assert.rejects(readFile(path.join(workspaceRoot, "dist", "button.docmap.json"), "utf8"), { code: "ENOENT" });
+  } finally {
+    await rm(workspaceRoot, { recursive: true, force: true });
+  }
+});
+
+test("standalone HIA conversion retains its explicit legacy map identity", () => {
+  // <lang><zh-CN>不经运行器的旧调用仍声明旧地图身份，避免把历史文档引用误标为新版。</zh-CN><en>Older calls outside the runner keep their legacy map identity instead of relabeling historical references.</en></lang>
+  const hia = sassExtractionToHiaDocument(extractSassDoc(source, { path: "button.scss" }), {
+    docSourceMapPath: "button.docmap.json"
+  });
+  assert.equal(hia.metadata.docSourceMaps[0].contractVersion, "0.1.0-draft");
 });
 
 test("loadSassDocConfig normalizes versioned JSON config", async () => {

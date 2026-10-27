@@ -6,6 +6,8 @@ import {
 const DEFAULT_LOCALE = "en";
 const HIA_TEXT_I18N_MODEL = "hia-text-i18n";
 const HIA_TEXT_I18N_MODEL_VERSION = "0.2.0";
+const OFFSET_RANGE_CONVENTION = Object.freeze({ endBoundary: "exclusive", columnUnit: "utf16-code-unit" });
+const UNCERTAIN_RANGE_CONVENTION = Object.freeze({ endBoundary: "unknown", columnUnit: "unknown" });
 
 /**
  * 从 Sass/SCSS 源码中提取第一轮 SassDoc artifact。
@@ -53,6 +55,10 @@ export function extractSassDoc(source, options = {}) {
       source: {
         path,
         range: selectorRange ?? block.range,
+        // <lang><zh-CN>简单规则和注释范围有已核实的坐标约定；复杂选择器仍只作为待核线索。</zh-CN><en>Plain rules and comment ranges have verified coordinates; complex selectors remain unverified hints.</en></lang>
+        rangeConvention: selectorRange && !isPlainSelectorRule(source, selector, selectorRange)
+          ? { ...UNCERTAIN_RANGE_CONVENTION }
+          : { ...OFFSET_RANGE_CONVENTION },
         rangeSource: selectorRange ? "sassdoc-parser" : "annotation",
         confidence: selectorRange ? "high" : "medium"
       },
@@ -71,6 +77,8 @@ export function extractSassDoc(source, options = {}) {
         source: {
           path,
           range: tokenVariable?.range ?? block.range,
+          // <lang><zh-CN>单行顶层变量使用源码偏移；复杂或未核变量保留未知约定，注释回退仍是已知半开范围。</zh-CN><en>A simple top-level variable uses source offsets; complex or unverified variables remain unknown, while comment fallback is a known half-open range.</en></lang>
+          rangeConvention: tokenVariable?.rangeConvention ?? { ...OFFSET_RANGE_CONVENTION },
           rangeSource: tokenVariable ? "sassdoc-parser" : "annotation",
           confidence: tokenVariable ? "high" : "medium"
         },
@@ -147,10 +155,17 @@ function parseVariables(source) {
   const pattern = /\$([\w-]+)\s*:\s*([^;]+);/g;
   let match;
   while ((match = pattern.exec(source)) !== null) {
+    // <lang><zh-CN>只给独立单行且无插值的变量声明精确约定；其他正则命中仍可能处于复杂 Sass 结构。</zh-CN><en>Only standalone, single-line, interpolation-free assignments receive a precise convention; other regex hits may lie in complex Sass syntax.</en></lang>
+    const lineStart = source.lastIndexOf("\n", match.index - 1) + 1;
+    const plainVariable = source.slice(lineStart, match.index).trim() === ""
+      && !/[\r\n]/u.test(match[0])
+      && !match[0].includes("#{")
+      && !/[{}]/u.test(source.slice(0, match.index));
     variables.push({
       name: `$${match[1]}`,
       value: match[2].trim(),
-      range: offsetRange(source, match.index, match.index + match[0].length)
+      range: offsetRange(source, match.index, match.index + match[0].length),
+      rangeConvention: { ...(plainVariable ? OFFSET_RANGE_CONVENTION : UNCERTAIN_RANGE_CONVENTION) }
     });
   }
   return variables;
@@ -365,6 +380,30 @@ function findLineRange(source, marker, after) {
     };
   }
   return null;
+}
+
+/**
+ * @lang zh-CN 仅把简单单行选择器规则视为已核定位；多行、伪类、组合、插值与嵌套语义仍留待 Sass 解析器验证。
+ * @lang en Treats only plain one-line selector rules as verified locations; multiline, pseudo, combined, interpolated, and nested semantics still need a Sass parser.
+ * @param {string} source 原始 Sass 文本；Original Sass text.
+ * @param {string} selector 注释声明的选择器；Selector declared by the annotation.
+ * @param {{start:{line:number,column:number},end:{line:number,column:number}}} range 行扫描得到的范围；Range found by the line scan.
+ * @returns {boolean} 是否为简单规则；Whether the matched rule is plain.
+ */
+function isPlainSelectorRule(source, selector, range) {
+  // <lang><zh-CN>只接受普通类或 ID 选择器及紧接的大括号；源文本的列为 UTF-16 代码单元。</zh-CN><en>Accept only a plain class or ID selector followed by an opening brace; source columns count UTF-16 code units.</en></lang>
+  if (!/^[.#][A-Za-z_][\w-]*$/u.test(selector)) {
+    return false;
+  }
+  // <lang><zh-CN>先前存在大括号时不能靠行扫描证明当前规则的嵌套层次，保守降为未知。</zh-CN><en>Earlier braces make rule nesting unprovable by a line scan, so leave the convention unknown.</en></lang>
+  const lines = source.split(/\r?\n/u);
+  const line = lines[range.start.line - 1] ?? "";
+  const precedingText = lines.slice(0, range.start.line - 1).join("\n") + line.slice(0, range.start.column - 1);
+  if (/[{}]/u.test(precedingText)) {
+    return false;
+  }
+  const candidate = line.slice(range.start.column - 1);
+  return candidate.startsWith(selector) && /^[ \t]*\{/u.test(candidate.slice(selector.length)) && !candidate.includes("#{");
 }
 
 function offsetRange(source, startOffset, endOffset) {

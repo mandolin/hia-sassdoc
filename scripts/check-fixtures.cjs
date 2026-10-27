@@ -54,7 +54,7 @@ function main() {
 
   const docmap = readJson("button.docmap.json");
   assert.equal(docmap.contract, "doc-source-map");
-  assert.equal(docmap.contractVersion, "0.1.0-draft");
+  assert.equal(docmap.contractVersion, "1.1.0");
   assert.equal(docmap.producer.profile, "sass-css-dart-sass");
   assert.equal(docmap.privacy.sourcesContentPolicy, "none");
   assert.equal(docmap.sourceMaps[0].pointer.status, "not-written");
@@ -68,11 +68,19 @@ function main() {
     assertSafeRelativePath(artifact.path);
   }
   assert.ok(docmap.entries.some((entry) => entry.kind === "design-token-link"));
+  for (const entry of docmap.entries) {
+    for (const ref of entry.sourceRefs) {
+      assert.deepEqual(ref.rangeConvention, { endBoundary: "exclusive", columnUnit: "utf16-code-unit" });
+      assert.equal(ref.rangeSource, "parser");
+      assert.equal(ref.rangeSourceDetail, "sassdoc-parser");
+    }
+  }
 
   const hia = readJson("button.hia.json");
   assert.equal(hia.schemaVersion, "0.2.0");
   assert.ok(hia.symbols.some((symbol) => symbol.id === "component:Button"));
   assert.ok(hia.metadata.docSourceMaps[0].path.endsWith("button.docmap.json"));
+  assert.equal(hia.metadata.docSourceMaps[0].contractVersion, "1.1.0");
 
   console.log("SassDoc fixture check passed.");
 }

@@ -1,6 +1,6 @@
 {
   "contract": "doc-source-map",
-  "contractVersion": "0.1.0-draft",
+  "contractVersion": "1.1.0",
   "id": "docmap:sass-css:fixtures-doc-source-map-sass-css-src-button-scss",
   "producer": {
     "name": "@hia-doc/sassdoc-runner",
@@ -101,7 +101,12 @@
               "column": 10
             }
           },
-          "rangeSource": "sassdoc-parser",
+          "rangeConvention": {
+            "endBoundary": "exclusive",
+            "columnUnit": "utf16-code-unit"
+          },
+          "rangeSource": "parser",
+          "rangeSourceDetail": "sassdoc-parser",
           "confidence": "high"
         }
       ],
@@ -134,7 +139,12 @@
               "column": 24
             }
           },
-          "rangeSource": "sassdoc-parser",
+          "rangeConvention": {
+            "endBoundary": "exclusive",
+            "columnUnit": "utf16-code-unit"
+          },
+          "rangeSource": "parser",
+          "rangeSourceDetail": "sassdoc-parser",
           "confidence": "high"
         }
       ],

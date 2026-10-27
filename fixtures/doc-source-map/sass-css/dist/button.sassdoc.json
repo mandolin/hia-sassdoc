@@ -44,6 +44,10 @@
             "column": 10
           }
         },
+        "rangeConvention": {
+          "endBoundary": "exclusive",
+          "columnUnit": "utf16-code-unit"
+        },
         "rangeSource": "sassdoc-parser",
         "confidence": "high"
       },
@@ -67,6 +71,10 @@
             "line": 7,
             "column": 24
           }
+        },
+        "rangeConvention": {
+          "endBoundary": "exclusive",
+          "columnUnit": "utf16-code-unit"
         },
         "rangeSource": "sassdoc-parser",
         "confidence": "high"
