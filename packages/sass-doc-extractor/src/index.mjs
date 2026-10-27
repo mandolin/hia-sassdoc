@@ -10,12 +10,11 @@ const OFFSET_RANGE_CONVENTION = Object.freeze({ endBoundary: "exclusive", column
 const UNCERTAIN_RANGE_CONVENTION = Object.freeze({ endBoundary: "unknown", columnUnit: "unknown" });
 
 /**
- * 从 Sass/SCSS 源码中提取第一轮 SassDoc artifact。
- * Extracts the first SassDoc artifact shape from Sass/SCSS source text.
- *
- * @param {string} source Sass or SCSS source text.
- * @param {{ path?: string, language?: string, sourcesContentPolicy?: "none" | "reference" | "embed" }} [options]
- * @returns {object} SassDoc extraction artifact.
+ * @lang zh-CN 从 Sass/SCSS 源码提取 SassDoc 工件；简单规则的精确范围止于自身右括号，无法核实的语法保留未知坐标约定。
+ * @lang en Extracts a SassDoc artifact from Sass/SCSS; a verified plain rule ends at its own closing brace, while uncertain syntax keeps unknown coordinate semantics.
+ * @param {string} source Sass/SCSS 源码文本；Sass/SCSS source text.
+ * @param {{ path?: string, language?: string, sourcesContentPolicy?: "none" | "reference" | "embed" }} [options] 来源路径、语言及内容策略；Source path, language, and content policy.
+ * @returns {object} SassDoc 提取工件；SassDoc extraction artifact.
  */
 export function extractSassDoc(source, options = {}) {
   const path = normalizePath(options.path ?? "source.scss");
@@ -39,6 +38,8 @@ export function extractSassDoc(source, options = {}) {
     const i18n = createDescriptionI18n(summary, block.tags, defaultLocale, "sassdoc.comment");
     // <lang><zh-CN>只在注释结束后查找选择器规则；缺失时保留注释位置及其较低置信度。</zh-CN><en>Search for a selector rule only after the annotation; preserve the annotation location and lower confidence when no rule is found.</en></lang>
     const selectorRange = findLineRange(source, selector, block.range.end);
+    // <lang><zh-CN>行扫描只定位候选；简单规则须另核其闭括号，不能把同行后继规则纳入已证范围。</zh-CN><en>The line scan only finds a candidate; a plain rule needs its own closing brace before its range can be verified.</en></lang>
+    const verifiedSelectorRange = selectorRange ? findPlainSelectorRuleRange(source, selector, selectorRange) : null;
 
     symbols.push({
       id: `component:${componentName}`,
@@ -54,9 +55,9 @@ export function extractSassDoc(source, options = {}) {
       },
       source: {
         path,
-        range: selectorRange ?? block.range,
+        range: verifiedSelectorRange ?? selectorRange ?? block.range,
         // <lang><zh-CN>简单规则和注释范围有已核实的坐标约定；复杂选择器仍只作为待核线索。</zh-CN><en>Plain rules and comment ranges have verified coordinates; complex selectors remain unverified hints.</en></lang>
-        rangeConvention: selectorRange && !isPlainSelectorRule(source, selector, selectorRange)
+        rangeConvention: selectorRange && !verifiedSelectorRange
           ? { ...UNCERTAIN_RANGE_CONVENTION }
           : { ...OFFSET_RANGE_CONVENTION },
         rangeSource: selectorRange ? "sassdoc-parser" : "annotation",
@@ -354,7 +355,7 @@ function parseAttributes(rawAttributes) {
  * @param {string} source Sass/SCSS 源码；Sass/SCSS source text.
  * @param {string} marker 标签声明的选择器；Selector declared by the tag.
  * @param {{line:number,column:number}} after 注释末位置（一基 UTF-16 列）；Annotation end position (one-based UTF-16 column).
- * @returns {{start:{line:number,column:number},end:{line:number,column:number}} | null} 可能的选择器至行尾半开范围，未找到时为 null；Likely selector-to-line-end half-open range, or null if absent.
+ * @returns {{start:{line:number,column:number},end:{line:number,column:number}} | null} 候选选择器至行尾的待核范围，未找到时为 null；Tentative selector-to-line-end range, or null if absent.
  */
 function findLineRange(source, marker, after) {
   // <lang><zh-CN>CRLF 与 LF 都按同一行模型扫描；起始行只检查注释终点之后。</zh-CN><en>Scan CRLF and LF with the same line model; inspect only text after the annotation end on its final line.</en></lang>
@@ -383,27 +384,96 @@ function findLineRange(source, marker, after) {
 }
 
 /**
- * @lang zh-CN 仅把简单单行选择器规则视为已核定位；多行、伪类、组合、插值与嵌套语义仍留待 Sass 解析器验证。
- * @lang en Treats only plain one-line selector rules as verified locations; multiline, pseudo, combined, interpolated, and nested semantics still need a Sass parser.
+ * @lang zh-CN 仅核简单顶层单行规则的匹配右括号，并把排他终点止于该括号后；多行、伪类、组合、插值、嵌套和无法词法确认的输入保留未知。
+ * @lang en Verifies a plain top-level one-line rule through its matching closing brace and sets the exclusive end after it; multiline, pseudo, combined, interpolated, nested, and lexically uncertain input remains unknown.
  * @param {string} source 原始 Sass 文本；Original Sass text.
  * @param {string} selector 注释声明的选择器；Selector declared by the annotation.
- * @param {{start:{line:number,column:number},end:{line:number,column:number}}} range 行扫描得到的范围；Range found by the line scan.
- * @returns {boolean} 是否为简单规则；Whether the matched rule is plain.
+ * @param {{start:{line:number,column:number},end:{line:number,column:number}}} range 行扫描得到的候选范围；Candidate range found by the line scan.
+ * @returns {{start:{line:number,column:number},end:{line:number,column:number}} | null} 已证规则范围或 null；Verified rule range or null.
  */
-function isPlainSelectorRule(source, selector, range) {
+function findPlainSelectorRuleRange(source, selector, range) {
   // <lang><zh-CN>只接受普通类或 ID 选择器及紧接的大括号；源文本的列为 UTF-16 代码单元。</zh-CN><en>Accept only a plain class or ID selector followed by an opening brace; source columns count UTF-16 code units.</en></lang>
   if (!/^[.#][A-Za-z_][\w-]*$/u.test(selector)) {
-    return false;
+    return null;
   }
   // <lang><zh-CN>先前存在大括号时不能靠行扫描证明当前规则的嵌套层次，保守降为未知。</zh-CN><en>Earlier braces make rule nesting unprovable by a line scan, so leave the convention unknown.</en></lang>
+  // <lang><zh-CN>行数组保留 UTF-16 字符串索引语义，供一基列计算使用。</zh-CN><en>The line array retains UTF-16 string indexes for one-based columns.</en></lang>
   const lines = source.split(/\r?\n/u);
+  // <lang><zh-CN>候选规则的原始行用于定位括号和行内后继规则。</zh-CN><en>The candidate's source line locates braces and later same-line rules.</en></lang>
   const line = lines[range.start.line - 1] ?? "";
+  // <lang><zh-CN>候选前缀用于保守排除无法由行扫描区分的已打开规则。</zh-CN><en>The prefix conservatively excludes already-open rules that the line scan cannot classify.</en></lang>
   const precedingText = lines.slice(0, range.start.line - 1).join("\n") + line.slice(0, range.start.column - 1);
   if (/[{}]/u.test(precedingText)) {
-    return false;
+    return null;
   }
+  // <lang><zh-CN>确认选择器之后只有水平空格和左括号；后续扫描以该括号为规则起点。</zh-CN><en>Require only horizontal whitespace and an opening brace after the selector; scan from that brace.</en></lang>
+  // <lang><zh-CN>候选切片以规则首列为零索引，后续终点需换算回一基列。</zh-CN><en>The candidate slice starts at the rule's zero-based index; convert its end back to a one-based column.</en></lang>
   const candidate = line.slice(range.start.column - 1);
-  return candidate.startsWith(selector) && /^[ \t]*\{/u.test(candidate.slice(selector.length)) && !candidate.includes("#{");
+  // <lang><zh-CN>开头匹配只接受简单选择器后紧跟水平空格与左括号。</zh-CN><en>The opening match accepts only a plain selector followed by horizontal whitespace and an opening brace.</en></lang>
+  const opener = candidate.startsWith(selector) ? candidate.slice(selector.length).match(/^[ \t]*\{/u) : null;
+  if (!opener) {
+    return null;
+  }
+  // <lang><zh-CN>左括号索引是扫描的基点，不把后继规则的括号计入本规则。</zh-CN><en>The opening-brace index anchors the scan without including a later rule's braces.</en></lang>
+  const openingIndex = selector.length + opener[0].length - 1;
+  // <lang><zh-CN>引号状态使字符串内的右括号不会提前结束规则。</zh-CN><en>The quote state prevents a closing brace inside a string from ending the rule early.</en></lang>
+  let quote = null;
+  // <lang><zh-CN>块注释状态忽略注释中的括号。</zh-CN><en>The block-comment state ignores braces inside comments.</en></lang>
+  let inBlockComment = false;
+  // <lang><zh-CN>转义状态使被转义的引号不误关字符串。</zh-CN><en>The escape state keeps an escaped quote from closing its string.</en></lang>
+  let escaped = false;
+
+  // <lang><zh-CN>跳过字面字符串及块注释中的括号；嵌套、插值和行注释使扫描器不能证明单规则终点。</zh-CN><en>Ignore braces inside strings and block comments; nesting, interpolation, and line comments prevent proving a single-rule end.</en></lang>
+  for (let index = openingIndex + 1; index < candidate.length; index += 1) {
+    // <lang><zh-CN>当前与前瞻字符只属于本轮词法判断，不改变源码偏移。</zh-CN><en>Current and lookahead characters are local to this lexical step and do not change source offsets.</en></lang>
+    const current = candidate[index];
+    const next = candidate[index + 1] ?? "";
+    if (inBlockComment) {
+      if (current === "*" && next === "/") {
+        inBlockComment = false;
+        index += 1;
+      }
+      continue;
+    }
+    if (quote) {
+      if (current === "#" && next === "{") {
+        return null;
+      }
+      if (escaped) {
+        escaped = false;
+      } else if (current === "\\") {
+        escaped = true;
+      } else if (current === quote) {
+        quote = null;
+      }
+      continue;
+    }
+    if (current === "/" && next === "*") {
+      inBlockComment = true;
+      index += 1;
+      continue;
+    }
+    if (current === "/" && next === "/") {
+      return null;
+    }
+    if (current === "'" || current === '"') {
+      quote = current;
+      continue;
+    }
+    if (current === "\\") {
+      return null;
+    }
+    if ((current === "#" && next === "{") || current === "{") {
+      return null;
+    }
+    if (current === "}") {
+      return {
+        start: range.start,
+        end: { line: range.start.line, column: range.start.column + index + 1 }
+      };
+    }
+  }
+  return null;
 }
 
 function offsetRange(source, startOffset, endOffset) {

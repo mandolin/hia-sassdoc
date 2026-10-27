@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { mkdtemp, readFile, rm, symlink, unlink, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, realpath, rm, symlink, unlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -70,12 +70,30 @@ test("runSassDoc emits producer result artifacts", async () => {
     assert.equal(hia.metadata.docSourceMaps[0].contractVersion, "1.1.0");
     const docmap = JSON.parse(await readFile(path.join(workspaceRoot, "dist", "button.docmap.json"), "utf8"));
     assert.equal(docmap.contractVersion, "1.1.0");
+    // <lang><zh-CN>跨行组件只扫描到开头行，不能给精确终点；同一输入的单行变量仍保持已证范围。</zh-CN><en>The multiline component scan sees only its opening line and cannot prove its end; the standalone variable remains precise.</en></lang>
+    assert.equal(docmap.entries[0].symbolId, "component:Button");
     assert.deepEqual(docmap.entries[0].sourceRefs[0].rangeConvention, {
+      endBoundary: "unknown",
+      columnUnit: "unknown"
+    });
+    const token = docmap.entries.find((entry) => entry.symbolId === "token:color.button.foreground");
+    assert.ok(token);
+    assert.deepEqual(token.sourceRefs[0].rangeConvention, {
       endBoundary: "exclusive",
       columnUnit: "utf16-code-unit"
     });
   } finally {
-    await rm(workspaceRoot, { recursive: true, force: true });
+    // <lang><zh-CN>清理前核真实路径为系统 temp 直属、由本测试 mkdtemp 建立的专属目录。</zh-CN><en>Before cleanup, confirm the real path is this test's dedicated mkdtemp child of system temp.</en></lang>
+    const actualTempRoot = await realpath(os.tmpdir());
+    const actualWorkspaceRoot = await realpath(workspaceRoot);
+    const relativeWorkspaceRoot = path.relative(actualTempRoot, actualWorkspaceRoot);
+    if (!path.isAbsolute(actualWorkspaceRoot)
+      || path.isAbsolute(relativeWorkspaceRoot)
+      || path.dirname(relativeWorkspaceRoot) !== "."
+      || !relativeWorkspaceRoot.startsWith("hia-sassdoc-")) {
+      throw new Error("Refusing recursive cleanup outside the Sass runner test directory.");
+    }
+    await rm(actualWorkspaceRoot, { recursive: true });
   }
 });
 

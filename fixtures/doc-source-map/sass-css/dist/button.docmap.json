@@ -102,8 +102,8 @@
             }
           },
           "rangeConvention": {
-            "endBoundary": "exclusive",
-            "columnUnit": "utf16-code-unit"
+            "endBoundary": "unknown",
+            "columnUnit": "unknown"
           },
           "rangeSource": "parser",
           "rangeSourceDetail": "sassdoc-parser",

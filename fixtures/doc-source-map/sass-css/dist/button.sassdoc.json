@@ -45,8 +45,8 @@
           }
         },
         "rangeConvention": {
-          "endBoundary": "exclusive",
-          "columnUnit": "utf16-code-unit"
+          "endBoundary": "unknown",
+          "columnUnit": "unknown"
         },
         "rangeSource": "sassdoc-parser",
         "confidence": "high"

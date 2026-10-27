@@ -30,7 +30,9 @@ The first fixture lives under `fixtures/doc-source-map/sass-css/` and demonstrat
 
 This fixture is generated with Dart Sass `1.101.0` under the repository-local mise toolchain. It validates the artifact contract, source-map path normalization and path/privacy rules.
 
-Plain Sass selector, variable, and comment branches carry verified exclusive UTF-16 ranges. Complex scanner results and external extraction input without explicit evidence carry `unknown` conventions and cannot support exact position lookup. The HIA document and producer result reference the emitted map's actual version; disabling map output omits both the file and its references.
+Verified single-line Sass selector, standalone variable, and comment branches carry exclusive UTF-16 ranges. Multiline selectors, complex scanner results, and external extraction input without explicit evidence carry `unknown` conventions and cannot support exact position lookup. The HIA document and producer result reference the emitted map's actual version; disabling map output omits both the file and its references.
+
+For a verified single-line selector rule, the exclusive source end is the position immediately after that rule's closing brace, even when another rule follows on the same line. If nesting, interpolation, or another construct prevents that boundary from being verified, the range remains a location hint with `unknown` endpoint and column unit.
 
 ## Standalone Usage
 

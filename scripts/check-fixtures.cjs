@@ -70,7 +70,10 @@ function main() {
   assert.ok(docmap.entries.some((entry) => entry.kind === "design-token-link"));
   for (const entry of docmap.entries) {
     for (const ref of entry.sourceRefs) {
-      assert.deepEqual(ref.rangeConvention, { endBoundary: "exclusive", columnUnit: "utf16-code-unit" });
+      // <lang><zh-CN>组件规则跨行，行扫描只给首行线索；独立单行变量仍可证明半开 UTF-16 范围。</zh-CN><en>The component rule spans lines, so its scanned first line is only a hint; the standalone one-line variable remains verified as half-open UTF-16.</en></lang>
+      assert.deepEqual(ref.rangeConvention, entry.symbolId === "component:Button"
+        ? { endBoundary: "unknown", columnUnit: "unknown" }
+        : { endBoundary: "exclusive", columnUnit: "utf16-code-unit" });
       assert.equal(ref.rangeSource, "parser");
       assert.equal(ref.rangeSourceDetail, "sassdoc-parser");
     }

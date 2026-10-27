@@ -75,6 +75,107 @@ test("component selector can start after a same-line annotation", () => {
   });
 });
 
+test("real Sass runner does not extend a verified rule into its same-line neighbor", async () => {
+  // <lang><zh-CN>两个顶层规则都由 Dart Sass 编译；文档地图仅能把首规则的已证范围止于自己的右括号后。</zh-CN><en>Dart Sass compiles both top-level rules; the verified documentation range for the first must stop just after its own closing brace.</en></lang>
+  const firstRule = ".a{color:red;}";
+  const secondRule = ".b{color:blue;}";
+  const cases = [
+    { name: "spaced", ruleLine: `${firstRule} ${secondRule}` },
+    { name: "adjacent", ruleLine: `${firstRule}${secondRule}` }
+  ];
+  const workspaceRoot = await mkdtemp(path.join(os.tmpdir(), "hia-sass-dual-rule-"));
+  try {
+    // <lang><zh-CN>经正式 runner 取实际提取件和 1.1.0 地图，防止只修测试替身。</zh-CN><en>Read the actual extraction and 1.1.0 map through the production runner, avoiding a test-only shortcut.</en></lang>
+    const outputDirectory = path.join(workspaceRoot, "dist");
+    for (const item of cases) {
+      const source = ["/**", " * @component A", " * @selector .a", " */", item.ruleLine].join("\n");
+      await writeFile(path.join(workspaceRoot, `${item.name}.scss`), source, "utf8");
+    }
+    const result = await runSassDoc({
+      workspaceRoot,
+      outputDirectory,
+      inputs: cases.map((item) => ({ kind: "scss", path: `${item.name}.scss`, artifactBasePath: item.name })),
+      options: { writeResultManifest: false }
+    });
+    assert.equal(result.status, "success", JSON.stringify(result.diagnostics));
+    for (const item of cases) {
+      const extraction = JSON.parse(await readFile(path.join(outputDirectory, `${item.name}.sassdoc.json`), "utf8"));
+      const map = JSON.parse(await readFile(path.join(outputDirectory, `${item.name}.docmap.json`), "utf8"));
+      const css = await readFile(path.join(outputDirectory, `${item.name}.css`), "utf8");
+      const range = {
+        start: { line: 5, column: 1 },
+        end: { line: 5, column: firstRule.length + 1 }
+      };
+      assert.match(css, /\.a\s*\{/u);
+      assert.match(css, /\.b\s*\{/u);
+      assert.deepEqual(extraction.symbols[0].source.range, range);
+      assert.deepEqual(map.entries[0].sourceRefs[0].range, range);
+      assert.deepEqual(map.entries[0].sourceRefs[0].rangeConvention, {
+        endBoundary: "exclusive", columnUnit: "utf16-code-unit"
+      });
+      assert.ok(firstRule.length + 1 <= item.ruleLine.indexOf(secondRule) + 1);
+    }
+  } finally {
+    // <lang><zh-CN>递归删除前核对目标是系统临时目录直属且带本测试前缀的真实路径。</zh-CN><en>Before recursive removal, verify the real target is a direct child of system temp with this test's prefix.</en></lang>
+    const actualTempRoot = await realpath(os.tmpdir());
+    const actualWorkspaceRoot = await realpath(workspaceRoot);
+    const relativeWorkspaceRoot = path.relative(actualTempRoot, actualWorkspaceRoot);
+    if (!path.isAbsolute(actualWorkspaceRoot)
+      || path.isAbsolute(relativeWorkspaceRoot)
+      || path.dirname(relativeWorkspaceRoot) !== "."
+      || !relativeWorkspaceRoot.startsWith("hia-sass-dual-rule-")) {
+      throw new Error("Refusing recursive cleanup outside the Sass dual-rule test directory.");
+    }
+    await rm(actualWorkspaceRoot, { recursive: true });
+  }
+});
+
+test("plain Sass rule boundary skips quoted and commented braces and rejects uncertain syntax", () => {
+  // <lang><zh-CN>词法正控要跳过字面内容中的右括号；后继规则的插值不应降级已完成的首规则。</zh-CN><en>Lexical controls must skip braces in literals; interpolation in a later rule must not downgrade the completed first rule.</en></lang>
+  const precise = [
+    { line: '.a{content:"}";} .b{color:blue;}', first: '.a{content:"}";}' },
+    { line: '.a{/* } */ color:red;} .b{color:blue;}', first: '.a{/* } */ color:red;}' },
+    { line: String.raw`.a{content:"\"}";} .b{color:blue;}`, first: String.raw`.a{content:"\"}";}` },
+    { line: '.a{color:red;} .b-#{$state}{color:blue;}', first: '.a{color:red;}' }
+  ];
+  for (const item of precise) {
+    const source = ["/**", " * @component A", " * @selector .a", " */", item.line].join("\n");
+    const extraction = extractSassDoc(source, { path: "case.scss" });
+    const map = createSassToCssDocumentationSourceMap({ sassExtraction: extraction });
+    assert.deepEqual(map.entries[0].sourceRefs[0].range, {
+      start: { line: 5, column: 1 }, end: { line: 5, column: item.first.length + 1 }
+    });
+    assert.deepEqual(map.entries[0].sourceRefs[0].rangeConvention, {
+      endBoundary: "exclusive", columnUnit: "utf16-code-unit"
+    });
+  }
+
+  // <lang><zh-CN>嵌套、插值、行注释和未证转义须保留范围线索，但不能标为精确坐标。</zh-CN><en>Nesting, interpolation, line comments, and unverified escapes retain location hints without claiming exact coordinates.</en></lang>
+  const uncertain = [
+    '.a{.inner{color:red;}}',
+    '.a{color:#{red};}',
+    '.a{color:red; // }',
+    String.raw`.a{content:\};}`
+  ];
+  for (const line of uncertain) {
+    const source = ["/**", " * @component A", " * @selector .a", " */", line].join("\n");
+    const extraction = extractSassDoc(source, { path: "case.scss" });
+    const map = createSassToCssDocumentationSourceMap({ sassExtraction: extraction });
+    assert.deepEqual(map.entries[0].sourceRefs[0].range, extraction.symbols[0].source.range);
+    assert.deepEqual(map.entries[0].sourceRefs[0].rangeConvention, {
+      endBoundary: "unknown", columnUnit: "unknown"
+    });
+  }
+
+  // <lang><zh-CN>规则右括号在下一行时，首行范围不是完整规则，必须保留未知。</zh-CN><en>When the closing brace is on a later line, the opening-line range is not the complete rule and must stay unknown.</en></lang>
+  const multiline = ["/**", " * @component A", " * @selector .a", " */", ".a {", "  color: red;", "}"].join("\n");
+  const extraction = extractSassDoc(multiline, { path: "case.scss" });
+  const map = createSassToCssDocumentationSourceMap({ sassExtraction: extraction });
+  assert.deepEqual(map.entries[0].sourceRefs[0].rangeConvention, {
+    endBoundary: "unknown", columnUnit: "unknown"
+  });
+});
+
 test("complex interpolated token range remains an unknown location hint", () => {
   // <lang><zh-CN>跨行或插值变量可由正则找到数值范围，但不能据此声称 Sass 语义定位精确。</zh-CN><en>A regex may find a numeric range in an interpolated assignment without proving its Sass semantic location.</en></lang>
   const source = "/** @component Card\n * @token color.card */\n$card-color: #{theme(color)};\n.card { color: red; }";
