@@ -113,7 +113,7 @@ test("opt-in coordinate profile binds actual map and source bytes to the primary
     const artifact = result.artifacts.find((item) => item.kind === "ordinary-source-map-coordinate-profile");
     assert.equal(artifact?.path, "card.coordinate-profile.json");
     assert.equal(artifact?.contract, "ordinary-source-map-coordinate-profile");
-    assert.equal(artifact?.contractVersion, "0.1.0-draft");
+    assert.equal(artifact?.contractVersion, "1.0.0");
     const profile = JSON.parse(await readFile(path.join(workspaceRoot, "dist", artifact.path), "utf8"));
     const sourceBytes = await readFile(path.join(workspaceRoot, "card.scss"));
     const ordinaryBytes = await readFile(path.join(workspaceRoot, "dist", "card.css.map"));
@@ -123,7 +123,7 @@ test("opt-in coordinate profile binds actual map and source bytes to the primary
     const digest = (bytes) => createHash("sha256").update(bytes).digest("base64");
 
     assert.equal(profile.contract, "ordinary-source-map-coordinate-profile");
-    assert.equal(profile.contractVersion, "0.1.0-draft");
+    assert.equal(profile.contractVersion, "1.0.0");
     assert.equal(profile.ordinaryMap.sourceMapId, documentation.sourceMaps[0].id);
     assert.equal(profile.ordinaryMap.artifactId, documentation.sourceMaps[0].mapsFrom);
     assert.equal(profile.ordinaryMap.digest.value, digest(ordinaryBytes));

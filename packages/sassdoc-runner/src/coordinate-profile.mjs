@@ -2,6 +2,12 @@ import { createHash } from "node:crypto";
 import { pathToFileURL } from "node:url";
 
 /**
+ * @lang zh-CN 生产器写入的稳定坐标侧载身份；同一常量同时用于结果描述。
+ * @lang en Stable coordinate sidecar version emitted by the producer and its result descriptor.
+ */
+export const COORDINATE_PROFILE_CONTRACT_VERSION = "1.0.0";
+
+/**
  * 将严格 UTF-8 输入解码为编译器与文档提取器共用的原始逻辑文本。
  * Decodes strict UTF-8 into the unmodified logical text shared by Sass and the documentation extractor.
  *
@@ -23,7 +29,7 @@ export function decodeCoordinateSource(sourceBytes) {
  * Constructs Sass's independent per-slot sidecar from both actual written maps and the primary source snapshot.
  *
  * @param {object} input 同轮编译的原始槽位、地图对象与实际字节 / Raw slots, map objects, and actual bytes from one compilation.
- * @returns {object} 不含源码正文或来源路径的草案侧载 / Draft sidecar without source body or source path.
+ * @returns {object} 不含源码正文或来源路径的稳定侧载 / Stable sidecar without source body or source path.
  * @throws {TypeError} 工件过大、字节变化或主槽位重复 / Oversized or changed artifacts, or duplicate primary slots.
  */
 export function createSassCoordinateProfile(input) {
@@ -98,7 +104,7 @@ export function createSassCoordinateProfile(input) {
   // <lang><zh-CN>零段普通图仍能附上双图身份，但不记录可误当已核的主来源槽位；严格查询只会给未核。</zh-CN><en>A zero-segment ordinary map may still bind the two map identities but carries no purportedly verified source slot; strict queries remain unverified.</en></lang>
   const profile = {
     contract: "ordinary-source-map-coordinate-profile",
-    contractVersion: "0.1.0-draft",
+    contractVersion: COORDINATE_PROFILE_CONTRACT_VERSION,
     id: `coordinate-profile:sass-css:input-${inputIndex + 1}`,
     ordinaryMap: {
       sourceMapId: sourceMap.id,

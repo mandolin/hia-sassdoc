@@ -20,7 +20,7 @@ export {
   SASSDOC_CONFIG_SCHEMA_VERSION
 } from "./schema.mjs";
 import { SASSDOC_CONFIG_SCHEMA_ID, SASSDOC_CONFIG_SCHEMA_VERSION } from "./schema.mjs";
-import { createSassCoordinateProfile, decodeCoordinateSource } from "./coordinate-profile.mjs";
+import { COORDINATE_PROFILE_CONTRACT_VERSION, createSassCoordinateProfile, decodeCoordinateSource } from "./coordinate-profile.mjs";
 
 export const SASSDOC_RUNNER_VERSION = "0.0.0";
 export const SASSDOC_INPUT_KINDS = Object.freeze(["scss", "sass"]);
@@ -321,7 +321,7 @@ async function processInput(input, request, index) {
     artifacts.push({
       ...artifact(`${artifactIdBase}-coordinate-profile`, "ordinary-source-map-coordinate-profile", coordinateProfilePath, "json", "application/json", request.profileIds),
       contract: "ordinary-source-map-coordinate-profile",
-      contractVersion: "0.1.0-draft"
+      contractVersion: COORDINATE_PROFILE_CONTRACT_VERSION
     });
   }
 
